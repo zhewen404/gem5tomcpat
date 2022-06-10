@@ -6,7 +6,9 @@ import json
 import types
 import math
 from xml.etree import ElementTree as ET
+import os
 
+gem5_home = os.getenv("GEM5_HOME", "/home/zhewen/repo/gem5-resources/src/parsec/gem5")
 
 #This is a wrapper over xml parser so that 
 #comments are preserved.
@@ -36,24 +38,30 @@ class PIParser(ET.XMLTreeBuilder):
 def parse(source):
     return ET.parse(source, PIParser())
 
+def getname(rePath):
+    return rePath.replace('my_STATS/','').replace('/',"_")
+
 def main():
     global opts
-    usage = "usage: %prog [options] <gem5 stats file> <gem5 config file (json)> <mcpat template file>"
+    usage = "usage: %prog [options] <gem5 rePath> <template name>"
     parser = OptionParser(usage=usage)
     parser.add_option("-q", "--quiet", 
         action="store_false", dest="verbose", default=True,
         help="don't print status messages to stdout")
-    parser.add_option("-o", "--out", type="string",
-        action="store", dest="out", default="mcpat-out.xml",
-        help="output file (input to McPAT)")
     (opts, args) = parser.parse_args()
-    if len(args) != 3:
+    if len(args) != 2:
         parser.print_help()
         sys.exit(1)
-    readStatsFile(args[0])
-    readConfigFile(args[1])
-    readMcpatFile(args[2])
-    dumpMcpatOut(opts.out)
+
+    name = getname(args[0]) # arg 0 is the relative path of result dir from gem5 home
+    stats_fname = gem5_home + '/' + args[0] + '/stats.txt'
+    config_fname = gem5_home + '/' + args[0] + '/config.json'
+    readStatsFile(stats_fname)
+    readConfigFile(config_fname)
+    readMcpatFile(args[1]) # arg 1 is the template name
+    if not os.path.exists('out/'):
+        os.makedirs('out/')
+    dumpMcpatOut('out/'+name + '.xml')
 
 def dumpMcpatOut(outFile):
     rootElem = templateMcpat.getroot()
@@ -62,13 +70,19 @@ def dumpMcpatOut(outFile):
     for param in rootElem.iter('param'):
         name = param.attrib['name']
         value = param.attrib['value']
+        # print(name,value)
+        # print(value)
         if 'config' in value:
             allConfs = configMatch.findall(value)
             for conf in allConfs:
                 confValue = getConfValue(conf)
+                # print(conf,confValue)
                 value = re.sub("config."+ conf, str(confValue), value)
-            if "," in value:
+                # print(value)
+            if "[" in value or ',' in value:
                 exprs = re.split(',', value)
+                exprs = [e.replace('[','').replace(']','') for e in exprs]
+                # print(exprs)
                 for i in range(len(exprs)):
                     exprs[i] = str(eval(exprs[i]))
                 param.attrib['value'] = ','.join(exprs)
@@ -128,7 +142,9 @@ def readStatsFile(statsFile):
     statLine = re.compile(r'([a-zA-Z0-9_\.:-]+)\s+([-+]?[0-9]+\.[0-9]+|[-+]?[0-9]+|nan|inf)')
     count = 0 
     for line in F:
+        # print(line)
         #ignore empty lines and lines starting with "---"  
+        if '%' in line: continue
         if not ignores.match(line):
             count += 1
             statKind = statLine.match(line).group(1)
@@ -137,6 +153,7 @@ def readStatsFile(statsFile):
                 print "\tWarning (stats): %s is nan. Setting it to 0" % statKind
                 statValue = '0'
             stats[statKind] = statValue
+            # print(statKind, statValue)
     F.close()
 
 def readConfigFile(configFile):

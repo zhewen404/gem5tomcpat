@@ -6,6 +6,13 @@ This repository contains a script to convert [GEM5][gem5] simulation statistics 
 [gem5]: http://www.gem5.org/Main_Page
 [mcpat]: http://www.hpl.hp.com/research/mcpat
 
+My Notes
+----------
+- Create description file
+`python2 GEM5ToMcPAT.py my_STATS/base/canneal_simsmall_64_0 template-xeon_my.xml`
+- Run (TODO)
+`python2 run_mcpat.py mcpat-out.xml /home/zhewen/repo/gem5-resources/src/parsec/gem5/my_STATS/base/canneal_simsmall_64_0/stats.txt`
+
 
 Quick Start
 ----------

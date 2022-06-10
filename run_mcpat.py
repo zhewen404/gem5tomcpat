@@ -9,7 +9,7 @@ import StringIO
 import subprocess as subp
 from optparse import OptionParser
 
-mcpat_home = os.getenv("MCPAT_HOME", "/home/dskhudia/projects/roombaplusplus/McPAT")
+mcpat_home = os.getenv("MCPAT_HOME", "/home/zhewen/repo/mcpat")
 mcpat_bin = "mcpat"
 
 class parse_node:
@@ -139,7 +139,7 @@ def getEnergy(procConfigFile, statsFile):
 def runMcPAT(procConfigFile):
     command = mcpat_home
     command += "/%s" % mcpat_bin
-    command += " -print_level 0"
+    command += " -print_level 5"
     command += " -infile %s" % procConfigFile
     #print command
     output = subp.check_output(command, shell=True)
@@ -161,11 +161,13 @@ def getTimefromStats(statsFile):
     for line in F:
         #ignore empty lines and lines starting with "---"  
         if not ignores.match(line):
+            if "%" in line: continue
             statKind = statLine.match(line).group(1)
             statValue = statLine.match(line).group(2)
-            if statKind == 'sim_seconds':
+            if statKind == 'simSeconds':
                 retVal = float(statValue)
     F.close()
+    # print(retVal)
     return retVal
 
 
