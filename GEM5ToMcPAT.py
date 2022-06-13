@@ -56,12 +56,14 @@ def main():
     name = getname(args[0]) # arg 0 is the relative path of result dir from gem5 home
     stats_fname = gem5_home + '/' + args[0] + '/stats.txt'
     config_fname = gem5_home + '/' + args[0] + '/config.json'
+    template_name = args[1]
+    append_name = template_name.replace(template_name.split('_')[0],'').replace('.xml', '')
     readStatsFile(stats_fname)
     readConfigFile(config_fname)
     readMcpatFile(args[1]) # arg 1 is the template name
     if not os.path.exists('out/'):
         os.makedirs('out/')
-    dumpMcpatOut('out/'+name + '.xml')
+    dumpMcpatOut('out/'+ name + append_name + '.xml')
 
 def dumpMcpatOut(outFile):
     rootElem = templateMcpat.getroot()
