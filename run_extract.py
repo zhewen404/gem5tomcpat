@@ -18,7 +18,7 @@ def construct_argparser():
     parser.add_argument('-n',
                         '--name',
                         nargs='+',
-                        help='file to parse results',
+                        help='name of gem5 result dir to parse results',
                         default=[ \
                             'base_canneal_simsmall_64_0_4_4', \
                             'base_canneal_simsmall_64_0_4_8', \
